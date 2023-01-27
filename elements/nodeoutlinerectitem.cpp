@@ -12,8 +12,6 @@ NodeOutlineRectItem::NodeOutlineRectItem(qreal x, qreal y, qreal width, qreal he
 }
 
 void NodeOutlineRectItem::hoverEnterEvent(QGraphicsSceneHoverEvent *event){
-//    NodeItem *parent = dynamic_cast<NodeItem *>(parentItem());
-//    parent->setChildHover(true);
     QPen pen;
     pen.setColor(NodeStyles::Color::Pen_Hover_Normie);
     pen.setWidth(4);
@@ -23,8 +21,6 @@ void NodeOutlineRectItem::hoverEnterEvent(QGraphicsSceneHoverEvent *event){
 }
 
 void NodeOutlineRectItem::hoverLeaveEvent(QGraphicsSceneHoverEvent *event){
-//    NodeItem *parent = dynamic_cast<NodeItem *>(parentItem());
-//    parent->setChildHover(false);
     QPen pen;
     pen.setColor(NodeStyles::Color::Outline_Normie);
     pen.setWidth(1);

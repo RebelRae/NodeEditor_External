@@ -8,6 +8,8 @@
 #include <QDebug>
 
 NodeScene::NodeScene(QObject *parent) : QGraphicsScene(parent) {
+    //  Init
+    activeConnection = nullptr;
     // Style stuffs
     style = Normie;
 
@@ -67,10 +69,12 @@ bool NodeScene::eventFilter(QObject *watched, QEvent *event) {
             if(hoverIO) {
                 if(hoverIO->IsOutput()) {
                     activeConnection = new Connection(this, hoverIO->scenePos().x()+6, hoverIO->scenePos().y()+6);
+                    activeConnection->setOutput(hoverIO);
                 } else {
-                    // Check if connected first
-                    qDebug() << "Grabbing intput";
+                    activeConnection = new Connection(this, hoverIO->scenePos().x()+6, hoverIO->scenePos().y()+6);
+                    activeConnection->setInput(hoverIO);
                 }
+                activeConnection->ColorActive(true);
             }
         }
         else if (event->type() == QEvent::GraphicsSceneMouseRelease) { // Mouse Up
@@ -81,16 +85,26 @@ bool NodeScene::eventFilter(QObject *watched, QEvent *event) {
         }
         else if (event->type() == QEvent::GraphicsSceneMouseMove) { // Mouse Move
             mouseSceneEvent = static_cast<QGraphicsSceneMouseEvent *>(event);
-            int x = mouseSceneEvent->lastScenePos().rx();
-            int y = mouseSceneEvent->lastScenePos().ry();
+            int x = mouseSceneEvent->scenePos().rx();
+            int y = mouseSceneEvent->scenePos().ry();
             if(activeConnection) {
-//                qDebug() << mouseSceneEvent->scenePos()<<mouseSceneEvent->lastScenePos();
-                activeConnection->DrawTo(x, y);
+                bool snap = false;
+                foreach (QGraphicsItem *item, this->items()) {
+                    IOElement *ioElement = qgraphicsitem_cast<IOElement *>(item);
+                    IOElement *selectedElement = activeConnection->CurrentIO();
+                    if (!ioElement) continue;
+                    if(ioElement->isUnderMouse()) {
+                        if(ioElement->IsOutput() == selectedElement->IsOutput()) continue;
+                        // TODO : Check if same node, add check routine to IOElement
+                        ioElement->SetHovering(true);
+                    } else {
+                        if(ioElement == selectedElement) continue;
+                        ioElement->SetHovering(false);
+                    }
+                }
+                if(!snap)
+                    activeConnection->DrawTo(x, y);
             }
-//            for(int i = 0; i < connections.size(); i++) {
-//                connections[i]->DrawTo(x, y);
-//            }
-//            QGraphicsScene::mouseMoveEvent(mouseSceneEvent);
         }
         QKeyEvent *keyEvent;
         if(event->type() == QEvent::KeyPress) { // Key Press

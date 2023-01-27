@@ -5,6 +5,7 @@
 #include "../nodestyles.h"
 
 Node::Node(QGraphicsScene *parent) {
+    // Init
     nodeItem = new NodeItem();
     parent->addItem(nodeItem);
     nodeItem->SetupFromType(static_cast<int>(Nodes::Type::Empty));

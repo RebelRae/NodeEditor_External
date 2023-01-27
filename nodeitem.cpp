@@ -5,7 +5,6 @@
 #include <QDebug>
 
 #include "nodestyles.h"
-//#include "nodescene.h"
 
 NodeItem::NodeItem(int w, int h) :
     bodyRect(new QGraphicsRectItem(0, 0, w, h)),
@@ -29,13 +28,6 @@ NodeItem::NodeItem(int w, int h) :
     setAcceptHoverEvents(true);
     setHandlesChildEvents(false);
 }
-
-//IOElement * NodeItem::getChildHover() const { return childHover; }
-//void NodeItem::setChildHover(IOElement * hover) {
-//    childHover = hover;
-//    NodeScene *nodeScene = dynamic_cast<NodeScene *>(scene());
-//    nodeScene->setChildHover(hover);
-//}
 
 void NodeItem::SetTitle(QString &text) { textItem->setPlainText(text); }
 
@@ -92,14 +84,14 @@ void NodeItem::resizeBody() {
     int w = outlineRect->rect().width();
     int inputsHeight = NodeStyles::Style::NodeMarginV;
     for(int i = 0; i < inputs.size(); i++) {
-        int space = inputs[i]->getVSpacing();
+        int space = inputs[i]->VSpacing();
         inputs[i]->setRect(0, 0, 12, 12);
         inputs[i]->setPos(-6, inputsHeight + space/2 - 6);
         inputsHeight += space;
     }
     int outputsHeight = NodeStyles::Style::NodeMarginV;
     for(int i = 0; i < outputs.size(); i++) {
-        int space = outputs[i]->getVSpacing();
+        int space = outputs[i]->VSpacing();
         outputs[i]->setRect(0, 0, 12, 12);
         outputs[i]->setPos(w - 6, outputsHeight + space/2 - 6);
         outputsHeight += space;
@@ -121,7 +113,6 @@ void NodeItem::ApplyStyle(int style) {
     qDebug() << QString("From Node Item: %1").arg(style);
     switch (style) {
     case 0:
-
         break;
     default:
         break;

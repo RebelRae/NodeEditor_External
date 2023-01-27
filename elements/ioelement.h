@@ -8,22 +8,26 @@
 
 class IOElement : public QGraphicsEllipseItem {
 public:
-    IOElement(QGraphicsItemGroup *parent=nullptr);
-    int getVSpacing() const;
-    void setVSpacing(int v);
+    IOElement(QGraphicsItemGroup *parent = nullptr);
+    int  VSpacing() const;
+    void SetVSpacing(int v);
+
     bool IsOutput() const;
     void SetOutput(bool output);
+
+    bool IsHovering() const;
+    void SetHovering(bool newIsHovering);
+
+    void HoverDraw(bool hovering);
 
 protected:
     virtual void hoverEnterEvent(QGraphicsSceneHoverEvent *event) override;
     virtual void hoverLeaveEvent(QGraphicsSceneHoverEvent *event) override;
-    virtual void dragEnterEvent(QGraphicsSceneDragDropEvent *event) override;
-    virtual void dragLeaveEvent(QGraphicsSceneDragDropEvent *event) override;
-    virtual void dropEvent(QGraphicsSceneDragDropEvent *event) override;
 
 private:
     int vSpacing;
     bool isOutput;
+    bool isHovering;
 };
 
 #endif // IOELEMENT_H

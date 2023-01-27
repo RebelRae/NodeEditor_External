@@ -5,15 +5,27 @@
 #include <QGraphicsScene>
 #include <QPainterPath>
 
+#include "ioelement.h"
+
 class Connection : public QGraphicsPathItem {
 public:
-    Connection(QGraphicsScene *parent=nullptr, qreal x=0, qreal y=0);
+    Connection(QGraphicsScene *parent = nullptr, qreal x = 0, qreal y = 0);
     void DrawTo(int xPos, int yPos, bool left = false);
+    void ColorActive(bool active);
+
+    IOElement *Input() const;
+    void setInput(IOElement *newInput);
+    IOElement *Output() const;
+    void setOutput(IOElement *newOutput);
+    IOElement *CurrentIO() const;
 
 protected:
     QPainterPath *path;
     QPen *pen;
-    bool selected;
+
+private:
+    IOElement *input;
+    IOElement *output;
 };
 
 #endif // CONNECTION_H

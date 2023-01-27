@@ -17,8 +17,6 @@ public:
     void SetTitle(QString &text);
     void AddInput(IOElement *input);
     void AddOutput(IOElement *output);
-//    IOElement * getChildHover() const;
-//    void setChildHover(IOElement * hover=nullptr);
 
 private:
     void resizeBody();
@@ -28,7 +26,6 @@ private:
     QGraphicsTextItem *textItem;
     std::vector<IOElement *> inputs;
     std::vector<IOElement *> outputs;
-//    IOElement * childHover;
 };
 
 #endif // NODEITEM_H
