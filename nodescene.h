@@ -23,6 +23,8 @@ public:
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event);
+    void DeleteConnection(Connection *conn);
+//    virtual void drawBackground(QPainter *painter, const QRectF &rect) override;
 
 private:
     enum NodeStyle {
@@ -36,7 +38,6 @@ private:
     QColor NodeBodyFill;
     QColor NodeBodyStroke;
     std::vector<Node *> nodes;
-    std::vector<Connection *> connections;
     IOElement *hoverIO;
     IOElement *selectedIO;
     Connection *activeConnection;

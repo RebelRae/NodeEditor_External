@@ -6,6 +6,7 @@
 class GeometryNode : public Node {
 public:
     GeometryNode(QGraphicsScene *parent);
+    void Update() override;
 
 private:
 };

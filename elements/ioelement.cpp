@@ -6,11 +6,13 @@
 #include "../nodescene.h"
 #include "../nodestyles.h"
 
-IOElement::IOElement(QGraphicsItemGroup *parent) : QGraphicsEllipseItem(parent) {
+IOElement::IOElement(QGraphicsItemGroup *parent, class Node *nodeParent) : QGraphicsEllipseItem(parent) {
     //  Init
     vSpacing = 26;
     isOutput = false;
     isHovering = false;
+    connection = nullptr;
+    node = nodeParent;
 
     QBrush brush = QBrush(Qt::SolidPattern);
     brush.setColor(NodeStyles::Color::IO_Normie);
@@ -18,8 +20,11 @@ IOElement::IOElement(QGraphicsItemGroup *parent) : QGraphicsEllipseItem(parent) 
     setPen(QPen(NodeStyles::Color::IO_Pen_Normie));
     setAcceptHoverEvents(true);
     setFlags(QGraphicsItem::GraphicsItemFlag::ItemIsSelectable |
-             QGraphicsItem::GraphicsItemFlag::ItemSendsScenePositionChanges);
+             QGraphicsItem::GraphicsItemFlag::ItemSendsScenePositionChanges |
+             QGraphicsItem::GraphicsItemFlag::ItemSendsGeometryChanges);
 }
+
+class Node *IOElement::Node() { return node; }
 
 void IOElement::HoverDraw(bool hovering) {
     QPen pen;
@@ -43,6 +48,19 @@ void IOElement::hoverLeaveEvent(QGraphicsSceneHoverEvent *event) {
     QGraphicsEllipseItem::hoverLeaveEvent(event);
 }
 
+QVariant IOElement::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value) {
+    if(change == QGraphicsItem::ItemScenePositionHasChanged) {
+        if(!isOutput && connection)
+            connection->DrawMove();
+        if(isOutput) {
+            for(int i = 0; i < connections.size(); i++){
+                connections[i]->DrawMove();
+            }
+        }
+    }
+    return QGraphicsEllipseItem::itemChange(change, value);
+}
+
 bool IOElement::IsHovering() const { return isHovering; }
 void IOElement::SetHovering(bool hovering) {
     isHovering = hovering;
@@ -52,6 +70,24 @@ void IOElement::SetHovering(bool hovering) {
         nodeScene->setChildHover(this);
     else
         nodeScene->setChildHover(nullptr);
+}
+
+class Connection * IOElement::Connection() const { return connection; }
+void IOElement::Connect(class Connection *conn) {
+    if(!isOutput)
+        connection = conn;
+    else
+        connections.push_back(conn);
+}
+void IOElement::Disconnect(class Connection *conn) {
+    if(!isOutput)
+        connection = nullptr;
+    else
+        for(int i = 0; i < connections.size(); i++) {
+            if(connections[i] == conn) {
+                connections.erase(connections.begin() + i);
+            }
+        }
 }
 
 bool IOElement::IsOutput() const { return isOutput; }

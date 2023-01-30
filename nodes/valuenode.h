@@ -6,6 +6,7 @@
 class ValueNode : public Node {
 public:
     ValueNode(QGraphicsScene *parent);
+    void Update() override;
 
 private:
 };

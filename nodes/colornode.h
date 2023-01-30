@@ -6,6 +6,7 @@
 class ColorNode : public Node {
 public:
     ColorNode(QGraphicsScene *parent);
+    void Update() override;
 
 private:
 };

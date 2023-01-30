@@ -13,8 +13,11 @@ public:
     void ApplyStyle(int style);
     void AddInput();
     void AddOutput();
-    void ConnectInput();
-    void ConnectOutput();
+    void ConnectInput(Node *node);
+    void ConnectOutput(Node *node);
+    void Disconnect(Node *node);
+    virtual void Update();
+    void DownstreamUpdate();
 
 protected:
     NodeItem *nodeItem;

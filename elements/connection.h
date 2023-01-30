@@ -9,8 +9,9 @@
 
 class Connection : public QGraphicsPathItem {
 public:
-    Connection(QGraphicsScene *parent = nullptr, qreal x = 0, qreal y = 0);
-    void DrawTo(int xPos, int yPos, bool left = false);
+    Connection(QGraphicsScene *parent = nullptr, qreal x = 0, qreal y = 0, bool left = false);
+    void DrawTo(int xPos, int yPos);
+    void DrawMove();
     void ColorActive(bool active);
 
     IOElement *Input() const;
@@ -26,6 +27,7 @@ protected:
 private:
     IOElement *input;
     IOElement *output;
+    bool toLeft;
 };
 
 #endif // CONNECTION_H
