@@ -1,63 +1,98 @@
 #include "nodescene.h"
 
+#include "KisDocument.h"
+#include <kis_layer.h>
+#include <kis_group_layer.h>
+#include <kis_node.h>
+#include <KoProperties.h>
+
 #include "nodestyles.h"
 #include "nodeitem.h"
 
 #include <QGraphicsSceneMouseEvent>
 #include <QKeyEvent>
-#include <QDebug>
 
 NodeScene::NodeScene(QObject *parent) : QGraphicsScene(parent) {
     //  Init
+    addNodeMenu = new EditorMenu();
     hoverIO = nullptr;
     selectedIO = nullptr;
     activeConnection = nullptr;
+    mainCanvas = nullptr;
+    shiftKey = false;
+    ctrlKey = false;
+    altKey = false;
+    previousPos = QPointF(0, 0);
+
+    debugTextItem = new QGraphicsTextItem();
+    debugTextItem->setAcceptHoverEvents(false);
+    debugTextItem->setPos(-300, -100);
+    addItem(debugTextItem);
+
     // Style stuffs
     style = Normie;
 
-    // Draw Background
-//    int width = 1000;
-//    int height = 600;
-//    QGraphicsRectItem *rect_item2 = this->addRect(-width/2, -height/2, width, height);
-//    rect_item2->setBrush(NodeStyles::Color::BackgroundFill);
-//    for(int y = -height/2; y < height/2; y+=20) {
-//        this->addLine(-width/2, y, width/2, y, NodeStyles::Color::GridLinesStroke);
-//    }
-//    this->addLine(-width/2, height/2, width/2, height/2, NodeStyles::Color::GridLinesStroke);
-//    for(int x = -width/2; x < width/2; x+=20) {
-//        this->addLine(x, -height/2, x, height/2, NodeStyles::Color::GridLinesStroke);
-//    }
-//    this->addLine(width/2, -height/2, width/2, height/2, NodeStyles::Color::GridLinesStroke);
     // Center
     this->addLine(0, -20, 0, 20, QPen(Qt::red));
     this->addLine(-20, 0, 20, 0, QPen(Qt::red));
 
-    // Nodes
-    nodes.push_back(new Node(this));
-    nodes.push_back(new ValueNode(this));
-    nodes.push_back(new ColorNode(this));
-    nodes.push_back(new GeometryNode(this));
-    nodes.push_back(new AttributeNode(this));
-    nodes.push_back(new AttributeNode(this));
+//    // Nodes
+//    nodes.push_back(new LayerNode(this));
+//    nodes.push_back(new PreviewNode(this));
+
+    // Menu
+    addItem(addNodeMenu);
+    addNodeMenu->hide();
 
     // Events
     installEventFilter(this);
 }
 
-void NodeScene::setStyle(int index) {
-    qDebug() << QString("Selected: %1").arg(index);
-    style = static_cast<NodeStyle>(index);
-    for(int i = 0; i < nodes.size(); i++) {
-        nodes[i]->ApplyStyle(index);
-    }
-    // TODO  : Add bg styles
+KoCanvasBase *NodeScene::Canvas() const { return mainCanvas; }
+
+void NodeScene::AddNode(QString nodeName) {
+    debugTextItem->setPlainText(nodeName);
+    if(nodeName == "Layer")
+        nodes.push_back(new LayerNode(this, previousPos.x(), previousPos.y()));
+    else if(nodeName == "Output")
+        nodes.push_back(new OutputNode(this, previousPos.x(), previousPos.y()));
+    else if(nodeName == "Preview")
+        nodes.push_back(new PreviewNode(this, previousPos.x(), previousPos.y()));
+    else if(nodeName == "Attribute")
+        nodes.push_back(new AttributeNode(this, previousPos.x(), previousPos.y()));
+    else if(nodeName == "Geometry")
+        nodes.push_back(new GeometryNode(this, previousPos.x(), previousPos.y()));
+    else if(nodeName == "Shape")
+        nodes.push_back(new ShapeNode(this, previousPos.x(), previousPos.y()));
+    else if(nodeName == "Get Shapes")
+        nodes.push_back(new GetShapesNode(this, previousPos.x(), previousPos.y()));
+    else if(nodeName == "Math")
+        nodes.push_back(new MathNode(this, previousPos.x(), previousPos.y()));
+    else if(nodeName == "Noise")
+        nodes.push_back(new NoiseNode(this, previousPos.x(), previousPos.y()));
+    else if(nodeName == "Color")
+        nodes.push_back(new ColorNode(this, previousPos.x(), previousPos.y()));
+    else if(nodeName == "Value")
+        nodes.push_back(new ValueNode(this, previousPos.x(), previousPos.y()));
+    addNodeMenu->hide();
 }
+
+void NodeScene::Debug(QString text) {
+    debugTextItem->setPlainText(text);
+}
+void NodeScene::setCanvas(KoCanvasBase *canvas) { mainCanvas = canvas; } // TODO : Propagate to specific node types
 
 IOElement * NodeScene::getChildHover() const { return hoverIO; }
 void NodeScene::setChildHover(IOElement * hover) { hoverIO = hover; }
 
+void NodeScene::setStyle(int index) {
+    style = static_cast<NodeStyle>(index); // TODO  : Add bg styles
+    for(int i = 0; i < nodes.size(); i++)
+        nodes[i]->ApplyStyle(index);
+}
+
 void NodeScene::DeleteConnection(Connection *conn) {
-    if(conn->Input()) // TODO : Make delete connection funcion
+    if(conn->Input()) // TODO : Make delete connection funcion in EditorNode
         conn->Input()->Disconnect();
     if(conn->Output())
         conn->Output()->Disconnect(conn);
@@ -116,9 +151,10 @@ bool NodeScene::eventFilter(QObject *watched, QEvent *event) {
             }
         }
         else if (event->type() == QEvent::GraphicsSceneMouseMove) { // Mouse Move
+            mouseSceneEvent = static_cast<QGraphicsSceneMouseEvent *>(event);
+            previousPos = mouseSceneEvent->scenePos();
             // If dragging activeConnection
             if(activeConnection) {
-                mouseSceneEvent = static_cast<QGraphicsSceneMouseEvent *>(event);
                 int x = mouseSceneEvent->scenePos().rx();
                 int y = mouseSceneEvent->scenePos().ry();
                 bool snap = false;
@@ -156,7 +192,43 @@ bool NodeScene::eventFilter(QObject *watched, QEvent *event) {
         QKeyEvent *keyEvent;
         if(event->type() == QEvent::KeyPress) { // Key Press
             keyEvent = static_cast<QKeyEvent *>(event);
-            qDebug() << keyEvent->key();
+            switch(keyEvent->key()) {
+            case Qt::Key_Shift:
+                shiftKey = true;
+                break;
+            case Qt::Key_Alt:
+                altKey = true;
+                break;
+            case Qt::Key_Control:
+            case Qt::Key_Meta:
+                ctrlKey = true;
+                break;
+            case Qt::Key_A:
+                if(shiftKey)
+                    debugTextItem->setPlainText(QString("Add Element"));
+                addNodeMenu->setPos(previousPos.x(), previousPos.y());
+                addNodeMenu->show();
+                break;
+            default:
+                break;
+            }
+        }
+        if(event->type() == QEvent::KeyRelease) { // Key Release
+            keyEvent = static_cast<QKeyEvent *>(event);
+            switch(keyEvent->key()) {
+            case Qt::Key_Shift:
+                shiftKey = false;
+                break;
+            case Qt::Key_Alt:
+                altKey = false;
+                break;
+            case Qt::Key_Control:
+            case Qt::Key_Meta:
+                ctrlKey = false;
+                break;
+            default:
+                break;
+            }
         }
     }
     return QGraphicsScene::eventFilter(watched, event);

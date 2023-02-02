@@ -10,8 +10,8 @@
 
 class IOElement : public QGraphicsEllipseItem {
 public:
-    IOElement(QGraphicsItemGroup *parent = nullptr, class Node *nodeParent = nullptr);
-    class Node *Node();
+    IOElement(QGraphicsItemGroup *parent = nullptr, class EditorNode *nodeParent = nullptr);
+    class EditorNode *Node();
     int  VSpacing() const;
     void SetVSpacing(int v);
 
@@ -33,7 +33,7 @@ protected:
     QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
 
 private:
-    class Node *node;
+    class EditorNode *node;
     int vSpacing;
     bool isOutput;
     bool isHovering;

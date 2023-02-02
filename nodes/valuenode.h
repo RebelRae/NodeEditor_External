@@ -1,11 +1,13 @@
 #ifndef VALUENODE_H
 #define VALUENODE_H
 
-#include  "node.h"
+#include  "editornode.h"
 
-class ValueNode : public Node {
+class ValueNode : public EditorNode {
+    Q_OBJECT
 public:
-    ValueNode(QGraphicsScene *parent);
+    ValueNode(QGraphicsScene *scene, qreal x = 0, qreal y = 0);
+    virtual ~ValueNode();
     void Update() override;
 
 private:

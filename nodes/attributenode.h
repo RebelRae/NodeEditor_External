@@ -1,11 +1,13 @@
 #ifndef ATTRIBUTENODE_H
 #define ATTRIBUTENODE_H
 
-#include  "node.h"
+#include  "editornode.h"
 
-class AttributeNode : public Node {
+class AttributeNode : public EditorNode {
+    Q_OBJECT
 public:
-    AttributeNode(QGraphicsScene *parent);
+    AttributeNode(QGraphicsScene *scene, qreal x = 0, qreal y = 0);
+    virtual ~AttributeNode();
     void Update() override;
 
 private:

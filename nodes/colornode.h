@@ -1,11 +1,13 @@
 #ifndef COLORNODE_H
 #define COLORNODE_H
 
-#include  "node.h"
+#include  "editornode.h"
 
-class ColorNode : public Node {
+class ColorNode : public EditorNode {
+    Q_OBJECT
 public:
-    ColorNode(QGraphicsScene *parent);
+    ColorNode(QGraphicsScene *scene, qreal x = 0, qreal y = 0);
+    virtual ~ColorNode();
     void Update() override;
 
 private:

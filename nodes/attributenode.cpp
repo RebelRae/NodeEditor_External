@@ -4,8 +4,8 @@
 
 #include "../nodestyles.h"
 
-AttributeNode::AttributeNode(QGraphicsScene *parent) : Node(parent) {
-    nodeItem->SetupFromType(static_cast<int>(Nodes::Type::Attribute));
+AttributeNode::AttributeNode(QGraphicsScene *scene, qreal x, qreal y) : EditorNode(scene, x, y) {
+    nodeItem->SetupFromType(static_cast<int>(EditorNodes::Type::Attribute));
     times = 0;
     textItem = new QGraphicsTextItem();
     AddInput();
@@ -15,9 +15,9 @@ AttributeNode::AttributeNode(QGraphicsScene *parent) : Node(parent) {
     textItem->setAcceptHoverEvents(false);
     nodeItem->addToGroup(textItem);
 }
+AttributeNode::~AttributeNode() {}
 
 void AttributeNode::Update() {
-    qDebug() << this;
     times++;
     textItem->setPos(10, nodeItem->boundingRect().height()/2);
     textItem->setPlainText(QString("Node Updated %1 times").arg(times));

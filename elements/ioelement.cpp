@@ -6,7 +6,7 @@
 #include "../nodescene.h"
 #include "../nodestyles.h"
 
-IOElement::IOElement(QGraphicsItemGroup *parent, class Node *nodeParent) : QGraphicsEllipseItem(parent) {
+IOElement::IOElement(QGraphicsItemGroup *parent, class EditorNode *nodeParent) : QGraphicsEllipseItem(parent) {
     //  Init
     vSpacing = 26;
     isOutput = false;
@@ -24,7 +24,7 @@ IOElement::IOElement(QGraphicsItemGroup *parent, class Node *nodeParent) : QGrap
              QGraphicsItem::GraphicsItemFlag::ItemSendsGeometryChanges);
 }
 
-class Node *IOElement::Node() { return node; }
+class EditorNode *IOElement::Node() { return node; }
 
 void IOElement::HoverDraw(bool hovering) {
     QPen pen;

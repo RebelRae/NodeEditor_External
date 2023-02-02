@@ -5,12 +5,14 @@
 #include <QDebug>
 
 #include "nodestyles.h"
+#include "nodes/editornode.h"
 
-NodeItem::NodeItem(int w, int h) :
+NodeItem::NodeItem(EditorNode *nodeParent, qreal x, qreal y, int w, int h) :
     bodyRect(new QGraphicsRectItem(0, 0, w, h)),
     headerRect(new QGraphicsRectItem(0, -NodeStyles::Style::NodeHeaderHeight, w, NodeStyles::Style::NodeHeaderHeight)),
     outlineRect(new NodeOutlineRectItem(0, -NodeStyles::Style::NodeHeaderHeight, w, h + NodeStyles::Style::NodeHeaderHeight, this))
 {
+    node = nodeParent;
     QBrush brush = QBrush(Qt::SolidPattern);
     // Body
     brush.setColor(NodeStyles::Color::NodeFill_Normie);
@@ -27,9 +29,12 @@ NodeItem::NodeItem(int w, int h) :
     setFlags(QGraphicsItem::GraphicsItemFlag::ItemIsMovable);
     setAcceptHoverEvents(true);
     setHandlesChildEvents(false);
+    setPos(x, y);
 }
 
-void NodeItem::SetTitle(QString &text) { textItem->setPlainText(text); }
+void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event) { node->OnClick(event); }
+
+void NodeItem::SetTitle(QString text) { textItem->setPlainText(text); }
 
 void NodeItem::AddInput(IOElement *input) {
     addToGroup(input);
@@ -74,6 +79,12 @@ void NodeItem::SetupFromType(int type) {
         headerRect->setBrush(brush);
         headerRect->setPen(Qt::NoPen);
         textItem->setPlainText("Get Attributes");
+        break;
+    case 5:
+        brush.setColor(NodeStyles::Color::HeaderIO_Normie);
+        headerRect->setBrush(brush);
+        headerRect->setPen(Qt::NoPen);
+        textItem->setPlainText("Layer");
         break;
     default:
         break;
