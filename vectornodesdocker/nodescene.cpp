@@ -35,6 +35,9 @@ NodeScene::NodeScene(QObject *parent) : QGraphicsScene(parent) {
     // Center
     this->addLine(0, -20, 0, 20, QPen(Qt::red));
     this->addLine(-20, 0, 20, 0, QPen(Qt::red));
+    nodes.push_back(new PreviewNode(this, 400, previousPos.y()));
+    nodes.push_back(new GetShapesNode(this, 200, previousPos.y()));
+    nodes.push_back(new ValueNode(this, previousPos.x(), 100));
 
     // Menu
     addItem(addNodeMenu);
@@ -45,7 +48,10 @@ NodeScene::NodeScene(QObject *parent) : QGraphicsScene(parent) {
 }
 
 KoCanvasBase *NodeScene::Canvas() const { return mainCanvas; }
-void NodeScene::setCanvas(KoCanvasBase *canvas) { mainCanvas = canvas; } // TODO : Propagate to specific node types
+void NodeScene::setCanvas(KoCanvasBase *canvas) {
+    mainCanvas = canvas;
+    nodes.push_back(new LayerNode(this, previousPos.x(), -100));
+} // TODO : Propagate to specific node types
 
 void NodeScene::AddNode(QString nodeName) {
     debugTextItem->setPlainText(nodeName);

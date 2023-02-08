@@ -6,12 +6,13 @@
 #include "valuenode.h"
 
 #include "kis_shape_layer.h"
-//#include "kis_node.h"
+#include "kis_image.h"
+#include <KisDocument.h>
 #include <KoProperties.h>
 #include <KoShapeManager.h>
 #include <KoShape.h>
 #include <KoShapeGroup.h>
-//#include <KoShapeControllerBase.h>
+#include <KoShapeControllerBase.h>
 
 GetShapesNode::GetShapesNode(QGraphicsScene *scene, qreal x, qreal y) : EditorNode(scene, x, y) {
     type = EditorNodes::Type::GetShapes;
@@ -37,18 +38,18 @@ GetShapesNode::GetShapesNode(QGraphicsScene *scene, qreal x, qreal y) : EditorNo
 GetShapesNode::~GetShapesNode() {}
 
 void GetShapesNode::Update() {
+    outputIO->SetVSpacing(26);
+    nodeItem->resizeBody();
 
     if(inputNodes.size() < 2) {
         textItem->setPlainText(QString("No input."));
         return;
     }
-    LayerNode *layerNode = nullptr;
-    KisNodeSP node = nullptr;
     KisShapeLayer *shapeLayer = nullptr;
     bool canDisplay = true;
     if(inputNodes.first()->inherits("LayerNode")) {
-        layerNode = qobject_cast<LayerNode *>(inputNodes.first());
-        node = layerNode->value;
+        LayerNode *layerNode = qobject_cast<LayerNode *>(inputNodes.first());
+        KisNodeSP node = layerNode->value;
         if(!node)
             canDisplay = false;
         shapeLayer = qobject_cast<KisShapeLayer *>(node.data());
@@ -63,48 +64,52 @@ void GetShapesNode::Update() {
             int min = valueNode->value[0];
             int max = valueNode->value[1];
             if(canDisplay) {
-                value = new KisShapeLayer(*shapeLayer);
+                KoShapeControllerBase *shapeController = nullptr;
+                value = new KisShapeLayer(shapeController, shapeLayer->image(), QString("name"), 255);
+//                value = dynamic_cast<KisShapeLayer *>(shapeLayer->clone().data());
                 ///////////////////////////////////////////////
+                const QTransform invertedTransform = value->absoluteTransformation().inverted();
                 value->shapeManager()->setUpdatesBlocked(true);
-//                for(int i = 0; i < value->shapeCount(); i++) {
-//                    KoShape *shape = value->shapes().at(i);
-//                    KIS_SAFE_ASSERT_RECOVER(shape) { continue; }
-//                    if(i < min || i > max)
-//                        value->shapeManager()->remove(shape);
-////                        value->removeShape(shape);
+//                int i = 0;
+//                Q_FOREACH (KoShape *shape, value->shapes()) {
+//                    if(i < min || i > max) {
+//                        value->removeShape(shape);
+//                    }
+//                    i++;
 //                }
                 int i = 0;
-                Q_FOREACH (KoShape *shape, value->shapes()) {
-                    if(i < min || i > max)
-//                        textItem->setPlainText(QString("Num shapes %1").arg(i));
-                        value->removeShape(shape);
+                Q_FOREACH (KoShape *shape, shapeLayer->shapes()) {
+                    if(i >= min && i <= max) {
+                        KoShape *clonedShape = shape->cloneShape();
+                        KIS_SAFE_ASSERT_RECOVER(clonedShape) { continue; }
+                        clonedShape->setTransformation(shape->absoluteTransformation() * invertedTransform);
+                        value->addShape(clonedShape);
+                        clonedShape->update();
+                        value->shapeManager()->notifyShapeChanged(clonedShape);
+                    }
                     i++;
-//                    KoShape *clonedShape = shape->cloneShape();
-//                    KIS_SAFE_ASSERT_RECOVER(clonedShape) { continue; }
-//                    clonedShape->setTransformation(shape->absoluteTransformation() * thisInvertedTransform);
-//                    addShape(clonedShape);
                 }
                 value->shapeManager()->setUpdatesBlocked(false);
+                value->setDirty();
+                value->image()->waitForDone();
+                value->forceUpdateTimedNode();
+                value->image()->waitForDone();
                 ///////////////////////////////////////////////
                 textItem->setPlainText(QString("Num shapes %1").arg(value->shapeCount()));
-//                value->removeShape(value->shapes().last());
-//                value->shapeManager()->remove(value->shapeManager()->shapes().last());
-//                value->update();
-////                while(value->shapeCount() > 0)
-////                    value->removeShape(value->shapes().last());
+                textItem->setPlainText(QString("x: %1 y: %2 w: %3 h: %4 shapes: %5")
+                                       .arg(value->absoluteOutlineRect().x())
+                                       .arg(value->absoluteOutlineRect().y())
+                                       .arg(value->absoluteOutlineRect().width())
+                                       .arg(value->absoluteOutlineRect().height())
+                                       .arg(value->shapeCount())
+                                       );
 
-//////                for(int i = 0; i < shapeLayer->childCount(); i++) {
-//////                    KisNodeSP child = shapeLayer->childNodes(QStringList(), KoProperties())[i];
-//////                    if(i >= min && i <= max)
-//////                        value.data()->childNodes(QStringList(), KoProperties()).append(child);
-//////                }
 //                textItem->setPlainText(QString(""));
-//                imageItem->show();
-//                outputIO->SetVSpacing(130);
-//                nodeItem->resizeBody();
-////                shapeLayer = qobject_cast<KisShapeLayer*>(value.data());
-//                QImage thumbnail = value->createThumbnail(130, 130, Qt::KeepAspectRatio);
-//                imageItem->setPixmap(QPixmap::fromImage(thumbnail));
+                imageItem->show();
+                outputIO->SetVSpacing(130);
+                nodeItem->resizeBody();
+                QImage thumbnail = value->createThumbnail(130, 130, Qt::KeepAspectRatio);
+                imageItem->setPixmap(QPixmap::fromImage(thumbnail));
             } else {
                 QVector<int> range = valueNode->value;
                 textItem->setPlainText(QString("min: %1 max: %2 sel: %3").arg(range.at(0)).arg(range.at(1)).arg(range.at(2)));
